@@ -269,7 +269,7 @@ class RobotEllipseRules(EllipseRules):
         self.visualization_level = 0
 
     def get_rules(self):
-        return [self.super_sub_circle_rule, self.not_rectangle]     #, self.differential_rule   self.quadrant_rule,
+        return [self.super_sub_circle_rule, ]     #self.not_rectangle, self.differential_rule   self.quadrant_rule,
 
     def quadrant_rule(self, ellipses, ellipse):
         quadrant_chect_list = [0, 0, 0, 0]
@@ -295,8 +295,267 @@ class RobotEllipseRules(EllipseRules):
                 return True
         return False
 
-    def not_rectangle(self, ellipses, ellipse):                                 #!
+    def not_rectangle(self, ellipses, ellipse):
         return True
+        edge_pixels = ellipse.edge_pixels()
+        ordered_edge_pixels = self._convert_to_connected_edge(edge_pixels)
+        area_real = self._calculate_area_of_form(ellipse.center(), ordered_edge_pixels)
+        center_angle, missing_angle = self._find_missing_angle_in_form(ellipse, ordered_edge_pixels)
+        #Calculating the ideal areas for an rectangle and ellipse with the given dimensions
+        full_rectangle_area = ellipse.height() * ellipse.width() * 4
+        area_rectangle = self._area_of_form_minus_missing_section(ellipse.width(), ellipse.height(), missing_angle, center_angle, full_rectangle_area, self._calculate_vector_to_edge_from_angle_rectangle)
+        full_ellipse_area = ellipse.height() * ellipse.width() * math.pi
+        area_ellipse = self._area_of_form_minus_missing_section(ellipse.width(), ellipse.height(), missing_angle, center_angle, full_ellipse_area, self._calculate_vector_to_edge_from_angle_ellipse)
+        #Determine if the form is closest to an ellipse based area
+        ellipse_area_diff = abs(area_real - area_ellipse)
+        rectangle_area_diff = abs(area_real - area_rectangle)
+        return ellipse_area_diff < rectangle_area_diff
+
+
+    def _find_missing_angle_in_form(self, ellipse, ordered_edge_pixels):
+        center_pixel = ellipse.center()
+        shift_rotation_RAD = ellipse.rotation('rad')
+        first_pixel = ordered_edge_pixels[0]
+        middle_pixel = ordered_edge_pixels[int(len(ordered_edge_pixels)/2)]
+        last_pixel = ordered_edge_pixels[-1]
+
+        vector_first = (center_pixel[0] - first_pixel[0], center_pixel[1] - first_pixel[1])
+        vector_middle = (center_pixel[0] - middle_pixel[0], center_pixel[1] - middle_pixel[1])
+        vector_last = (center_pixel[0] - last_pixel[0], center_pixel[1] - last_pixel[1])
+
+        first_last_angle = self._angle_between_two_vectors(vector_first, vector_last)
+        first_middle_angle = self._angle_between_two_vectors(vector_first, vector_middle)
+
+        if first_last_angle < first_middle_angle:
+            missing_angle_span_RAD = first_last_angle
+        else:
+            missing_angle_span_RAD = math.radians(360) - first_last_angle
+
+        #Find missing section angles
+        first_angle =  self._vector_angle(vector_first)
+        last_angle = self._vector_angle(vector_last)
+        center_angle = (first_angle + last_angle)/2
+
+        #Make them relative to the local ellispe
+        center_angle_relative_RAD = self._make_angle_relative(center_angle, shift_rotation_RAD)
+        return center_angle_relative_RAD, missing_angle_span_RAD
+
+    def _vector_angle(self, vector):
+        x = vector[0]
+        y = vector[1]
+        angle = abs(math.atan(y/x))
+        if x < 0: angle += math.radians(90)
+        if y < 0: angle += math.radians(180)
+        return angle
+
+    def _make_angle_relative(self, angle_RAD, rotation_RAD):
+        relative_angle = angle_RAD - rotation_RAD
+        if relative_angle < math.radians(0): 
+            relative_angle = math.radians(360) + relative_angle
+        elif relative_angle > math.radians(360):
+            relative_angle = relative_angle - 360
+        return relative_angle
+
+
+    def _dotproduct_of_two_vectors(self, v1, v2):
+        return sum((a*b) for a, b in zip(v1, v2))
+
+    def _length_of_vector(self, v):
+        return math.sqrt(self._dotproduct_of_two_vectors(v, v))
+
+    def _angle_between_two_vectors(self, v1, v2):
+        return math.acos(self._dotproduct_of_two_vectors(v1, v2) / (self._length_of_vector(v1) * self._length_of_vector(v2)))
+
+    def _calculate_section_area_from_integral_vectors(self, integral_vectors):
+        section_area = 0
+        for point_nr, edge_point in enumerate(integral_vectors):
+            if point_nr > 0:
+                first_vector = integral_vectors[point_nr-1]
+                second_vector = integral_vectors[point_nr]
+                triangle_area = self._calculate_triangle_area_vectors(first_vector, second_vector)
+                section_area += triangle_area
+        return section_area
+
+
+    def _area_of_form_minus_missing_section(self,  width, height, missing_RAD, center_angle_RAD, full_area, vector_function):
+        first_RAD = center_angle_RAD - (missing_RAD / 2)
+        last_RAD = center_angle_RAD + (missing_RAD / 2)
+
+        #Find edge vectors based on section integrale
+        integral_vectors = []
+        starting_angle = math.floor(math.degrees(first_RAD))
+        ending_angle = math.ceil(math.degrees(last_RAD))
+        for angle in range(starting_angle, ending_angle+1, 1):
+            edge_point_at_angle = vector_function(width, height, math.radians(angle))
+            integral_vectors.append(edge_point_at_angle)
+
+        #Find section area based on edge vectors
+        section_area = self._calculate_section_area_from_integral_vectors(integral_vectors)
+
+        #substract extra area from full area
+        section_triangle_area = self._calculate_triangle_area_vectors(integral_vectors[0], integral_vectors[-1])
+        substraction_area = section_area - section_triangle_area
+        area = full_area - substraction_area
+        return area
+
+
+    def _calculate_vector_to_edge_from_angle_rectangle(self, width, height, angle):
+        width_half = width
+        height_half = height
+
+        corner_angle_1 = math.atan(height_half / width_half)
+        corner_angle_2 = math.atan(height_half / -width_half)
+        corner_angle_3 = math.atan(-height_half / -width_half)
+        corner_angle_4 = math.atan(-height_half / width_half)
+
+        if (angle > corner_angle_1 and angle < corner_angle_2) or (angle > corner_angle_3 and angle < corner_angle_4):
+            #Use height
+            angle = 90-angle
+            x = math.sin(angle) * (height_half / math.cos(angle))
+            y = math.cos(angle) * (height_half / math.cos(angle))
+        else:
+            #Use width
+            x = math.cos(angle) * (width_half / math.cos(angle))
+            y = math.sin(angle) * (width_half / math.cos(angle))
+
+        return (x, y)
+
+    def _calculate_vector_to_edge_from_angle_ellipse(self, width, height, angle):
+        radius_at_angle = self._calculate_ellipse_radius_at_angle(width, height, angle)
+        width = math.cos(angle) * radius_at_angle
+        height = math.sin(angle) * radius_at_angle
+        return (width, height)
+
+    def _calculate_ellipse_radius_at_angle(self, width, height, angle):
+        return (width * height) / math.sqrt(((height**2)*(math.sin(angle)**2)) + ((width**2)*(math.cos(angle)**2)))
+
+
+    def _calculate_area_of_form(self, center, ordered_edge_pixels):
+        full_area = 0
+        current_pixel = None
+        last_pixel = ordered_edge_pixels[0]
+        for pixel in ordered_edge_pixels[1:]:
+            current_pixel = pixel
+            triangle_area = self._calculate_triangle_area_three_point(center, current_pixel, last_pixel)
+            full_area += triangle_area
+            last_pixel = current_pixel
+        current_pixel = ordered_edge_pixels[0]
+        triangle_area = self._calculate_triangle_area_three_point(center, current_pixel, last_pixel)
+        full_area += triangle_area
+        return full_area
+
+
+    def _calculate_triangle_area_three_point(self, point_a, point_b, point_c):
+        #Get two vectors from points
+        vector_a = (abs(point_a[0] - point_b[0]), abs(point_a[1] - point_b[1]))
+        vector_b = (abs(point_a[0] - point_c[0]), abs(point_a[1] - point_c[1]))
+        vector_a_np = np.asarray(vector_a)
+        vector_b_np = np.asarray(vector_b)
+        triangle_area = self._calculate_triangle_area_vectors(vector_a_np, vector_b_np)
+        return triangle_area
+
+    def _calculate_triangle_area_vectors(self, vec_a, vec_b):
+        #Calculate rectangle area with cross-product
+        cross_product = np.cross(vec_a, vec_b)
+        full_area = np.linalg.norm(cross_product)
+        #Half of area gives an triangle
+        triangle_area = full_area / 2
+        return triangle_area
+
+
+    def _length_between_points(self, point_a, point_b):
+        x_diff = abs(point_a[0] - point_b[0])
+        y_diff = abs(point_a[1] - point_b[1])
+        length = x_diff if x_diff > y_diff else y_diff
+        return length
+
+
+    def _find_list_to_connect(self, list_of_lists, sub_list, index_nr = -1):
+        index = -1
+        flags = { 'reverse': 0, 'order': 1 }
+        for index_count, list in enumerate(list_of_lists):
+            if index_count != index_nr:
+                first_px_of_list = list[0]
+                last_px_of_list = list[-1]
+                first_px_of_sub = sub_list[0]
+                last_px_of_sub = sub_list[-1]
+
+                if self._length_between_points(first_px_of_list, first_px_of_sub) == 1:
+                    flags['reverse'] = 1
+                    flags['order'] = 1
+                    index = index_count
+                    break
+                elif self._length_between_points(first_px_of_list, last_px_of_sub) == 1:
+                    flags['reverse'] = 0
+                    flags['order'] = 2
+                    index = index_count
+                    break
+                elif self._length_between_points(last_px_of_list, first_px_of_sub) == 1:
+                    flags['reverse'] = 0
+                    flags['order'] = 1
+                    index = index_count
+                    break
+                elif self._length_between_points(last_px_of_list, last_px_of_sub) == 1:
+                    flags['reverse'] = 2
+                    flags['order'] = 1
+                    index = index_count
+                    break
+
+        return index, flags
+
+    def _convert_to_connected_edge(self, ordered_edge):
+        ordered_edge_list = ordered_edge
+        ordered_edge_list.append((999999, 999999))
+
+        list_of_lists = [[ordered_edge_list[0]]]
+        sub_list = [ordered_edge_list[1]]                        #Sub connected graph / link / connections
+
+        for pixel in ordered_edge_list[1:]:
+            length = self._length_between_points(pixel, sub_list[-1])
+            if length == 1:
+                sub_list.append(pixel)
+            if length > 1:
+                index, end_flags = self._find_list_to_connect(list_of_lists, sub_list)
+                if index == -1: list_of_lists.append(sub_list)
+                else:
+                    if end_flags['reverse'] == 1:
+                        list_of_lists[index].reverse()
+                    elif end_flags['reverse'] == 2:
+                        sub_list.reverse()
+                    if end_flags['order'] == 1:
+                        list_of_lists[index].extend(sub_list)
+                    elif end_flags['order'] == 2:
+                        sub_list.extend(list_of_lists[index])
+                        list_of_lists[index] = sub_list
+
+                    old_index = index
+                    new_index, end_flags = self._find_list_to_connect(list_of_lists, list_of_lists[old_index], old_index)
+                    if new_index != -1:
+                        if end_flags['reverse'] == 1:
+                            list_of_lists[new_index].reverse()
+                        elif end_flags['reverse'] == 2:
+                            list_of_lists[old_index].reverse()
+                        if end_flags['order'] == 1:
+                            list_of_lists[new_index].extend(list_of_lists[old_index])
+                            del list_of_lists[old_index]
+                        elif end_flags['order'] == 2:
+                            list_of_lists[old_index].extend(list_of_lists[new_index])
+                            del list_of_lists[new_index]
+                sub_list = [pixel]
+
+        return list_of_lists[0]
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -309,6 +568,12 @@ class EllipseHelpFunction:
             if  EllipseHelpFunction.check_if_points_is_inside_ellipse(outer_ellipse, secondary_corner_coor):
                 return True
         return False
+
+    def calculate_vector_to_edge_from_angle(ellipse, angle):
+        radius_at_angle = EllipseHelpFunction._calculate_ellipse_radius_at_angle(ellipse, angle)
+        width = math.cos(angle) * radius_at_angle
+        height = math.sin(angle) * radius_at_angle
+        return (width, height)
 
     def calculate_radius_from_vector(ellipse, vector, distance):
         normalized_vector = (vector[0]/distance, vector[1]/distance)

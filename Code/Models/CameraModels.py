@@ -89,7 +89,8 @@ class Camera:
     def get_frame(self):
         rval, frame = self.capture.read()
         radial_frame = self._correct_radial_distortion(frame)
-        return radial_frame
+        down_scaled_frame = cv2.resize(radial_frame, (640, 480), interpolation = cv2.INTER_AREA)
+        return down_scaled_frame
 
     def _correct_radial_distortion(self, frame):                                #!
         return frame

@@ -1,7 +1,7 @@
 from Models.CameraModels import Camera
 from Models.EllipseModels import Ellipse
 from EllipseDetection import *
-from Calibration import
+from Calibration import CameraCalibration
 
 from sklearn.cluster import KMeans, MeanShift, estimate_bandwidth
 import cv2
@@ -23,9 +23,9 @@ class RobotTracking:
         cameras = self._setup_cameras(cam_info_list)
         for cam in cameras:
             calibration_ellipses = []
-            while len(calibration_ellipses) < 3:
-                calibration_ellipses = self._get_calibration_ellipses(cam, frame_iterations=7)
-            self.cam_calibration.calibrate(cam, calibration_ellipses, self.circle_info)
+            # while len(calibration_ellipses) < 3:
+            #     calibration_ellipses = self._get_calibration_ellipses(cam, frame_iterations=7)
+            # self.cam_calibration.calibrate(cam, calibration_ellipses, self.circle_info)
         return cameras
 
     def _setup_cameras(self, cam_info_list):
@@ -155,9 +155,26 @@ class RobotTracking:
         ellipses = self.ellipse_detector.detect(frame)
         special_ellipses = self.ellipse_filtering.filter(ellipses)
         robot_ellipses = self._convert_ellipses_to_robot_ellipses(special_ellipses)
+        robot_ellipses = self._filter_out_double_ellipses(robot_ellipses)
         self._fill_in_robot_ellipses_info(robot_ellipses, cam)
         ellipse_group = self._get_ellipses_group(robot_ellipses, ellipse_group)
         return ellipse_group
+
+    def _filter_out_double_ellipses(self, robot_ellipses):
+        filtered_robot_ellipses = []
+        for robot_ellipse in robot_ellipses:
+            if self._robot_ellipses_inside_of_ellipse(robot_ellipses, robot_ellipse) == False:
+                filtered_robot_ellipses.append(robot_ellipse)
+        return filtered_robot_ellipses
+
+    def _robot_ellipses_inside_of_ellipse(self, robot_ellipses, robot_ellipse):
+        for robot_ellipse_check in robot_ellipses:
+            if robot_ellipse_check != robot_ellipse:
+                inner_ellipse = robot_ellipse_check.get_super_ellipse()
+                outer_ellipse = robot_ellipse.get_super_ellipse()
+                if EllipseHelpFunction.is_ellipse_inside_ellipse(inner_ellipse, outer_ellipse):
+                    return True
+        return False
 
     def _correct_colors_in_frame(self, frame):
         gray_img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)

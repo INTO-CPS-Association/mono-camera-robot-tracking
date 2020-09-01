@@ -6,7 +6,7 @@ class Subscribers:
         pass
 
     def robot_position(self, robot):
-        return None
+        return True
 
     def send_to(self, subs, position, timestamp):
         pass

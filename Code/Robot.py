@@ -5,6 +5,7 @@ from Calibration import CameraCalibration
 
 from sklearn.cluster import KMeans, MeanShift, estimate_bandwidth
 import cv2
+import operator
 
 
 
@@ -16,8 +17,8 @@ class RobotTracking:
         self.ellipse_detector = EllipseDetection(100)
         self.ellipse_filtering = EllipseFiltering(RobotEllipseRules())
         self.visual_feedback = visual_feedback
-        self.cameras = self._init_cameras(cam_info_list)
         self.cam_calibration = CameraCalibration()
+        self.cameras = self._init_cameras(cam_info_list)
 
     def _init_cameras(self, cam_info_list):
         cameras = self._setup_cameras(cam_info_list)
@@ -48,7 +49,7 @@ class RobotTracking:
 
     def _get_robot_ellipses_over_N_iterations(self, cam, nr_of_iterations, group = 'all'):
         all_ellipses = []
-        for iteration in range(0, nr_of_iterations):
+        for _ in range(nr_of_iterations):
             frame = cam.get_frame()
             robot_ellipses = self._get_special_ellipses(cam, frame, group)
             all_ellipses.extend(robot_ellipses)
@@ -129,10 +130,25 @@ class RobotTracking:
         average_distance = sum([ellipse.get_distance() for ellipse in ellipses]) / nr_of_ellipses
 
         average_super_ellipse = Ellipse([], average_center, average_width, average_height, average_rotation)
-        average_robot_ellipse = RobotEllipse(super_ellipse = average_super_ellipse, sub_ellipses = ellipses[0].get_sub_ellipses())
+        average_sub_ellipses = self._create_average_sub_ellipses(ellipses)
+        average_robot_ellipse = RobotEllipse(super_ellipse = average_super_ellipse, sub_ellipses = average_sub_ellipses)
         average_robot_ellipse.set_angle(average_angle)
         average_robot_ellipse.set_distance(average_distance)
         return average_robot_ellipse
+
+    def _create_average_sub_ellipses(self, ellipses):
+        id_map = {}
+        for ellipse in ellipses:
+            if ellipse.get_id() not in id_map:
+                id_map[ellipse.get_id()] = 0
+            id_map[ellipse.get_id()] += 1
+        dominant_id = max(id_map.items(), key=operator.itemgetter(1))[0]
+        for ellipse in ellipses:
+            if ellipse.get_id() == dominant_id:
+                return ellipse.get_sub_ellipses()
+        return ellipses[0].get_sub_ellipses()
+
+
 
     def find_robots(self):
         for cam in self.cameras:
@@ -152,7 +168,7 @@ class RobotTracking:
 
     def _get_special_ellipses(self, cam, frame, ellipse_group):
         color_corrected_frame = self._correct_colors_in_frame(frame)
-        ellipses = self.ellipse_detector.detect(frame)
+        ellipses = self.ellipse_detector.detect(color_corrected_frame)
         special_ellipses = self.ellipse_filtering.filter(ellipses)
         robot_ellipses = self._convert_ellipses_to_robot_ellipses(special_ellipses)
         robot_ellipses = self._filter_out_double_ellipses(robot_ellipses)

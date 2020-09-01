@@ -12,17 +12,18 @@ class CameraInfo:
         self.view_degrees_vertical = None
         self.dpi = None
         self.focal_length = None
+        self.focus = None
         self._setup_camera_parameters(internal_properties)
 
     def _setup_camera_parameters(self, internal_properties):
-        if 'view_degrees_horizontal' in internal_properties and internal_properties['view_degrees_horizontal'] != None:
-            self.view_degrees_horizontal = internal_properties['view_degrees_horizontal']
-        if 'view_degrees_vertical' in internal_properties and internal_properties['view_degrees_vertical'] != None:
-            self.view_degrees_vertical = internal_properties['view_degrees_vertical']
-        if 'dpi' in  internal_properties and internal_properties['dpi'] != None:
-            self.dpi = internal_properties['dpi']
-        if 'focal_length' in internal_properties and internal_properties['focal_length'] != None:
-            self.focal_length = internal_properties['focal_length']
+        self.view_degrees_horizontal = self._get_dict_value(internal_properties, 'view_degrees_horizontal')
+        self.view_degrees_vertical = self._get_dict_value(internal_properties, 'view_degrees_vertical')
+        self.dpi = self._get_dict_value(internal_properties, 'dpi')
+        self.focal_length = self._get_dict_value(internal_properties, 'focal_length')
+        self.focus = self._get_dict_value(internal_properties, 'focus')
+
+    def _get_dict_value(self, dictonary, key):
+        return dictonary[key] if key in dictonary else None
 
     def get_address(self):
         return self.address
@@ -51,6 +52,9 @@ class CameraInfo:
         elif type.lower() == 'rad': return math.radians(self.view_degrees_horizontal)
         else: return self.view_degrees_horizontal
 
+    def get_focus(self):
+        return self.focus
+
 
 
 class Camera:
@@ -75,6 +79,11 @@ class Camera:
         self.address = self._get_address(cam_info)
         self.capture = self._start_cam(self.address, cam_name)
         self.init_status = self._get_init_status(self.capture)
+        self._set_cam_focus(cam_info.get_focus())
+
+    def _set_cam_focus(self, focus):
+        if focus != None:
+            self.capture.set(28, focus)
 
     def _get_address(self, cam_info):
         return cam_info.get_address()
@@ -89,8 +98,8 @@ class Camera:
     def get_frame(self):
         rval, frame = self.capture.read()
         radial_frame = self._correct_radial_distortion(frame)
-        down_scaled_frame = cv2.resize(radial_frame, (640, 480), interpolation = cv2.INTER_AREA)
-        return down_scaled_frame
+        #down_scaled_frame = cv2.resize(radial_frame, (640, 480), interpolation = cv2.INTER_AREA)
+        return radial_frame
 
     def _correct_radial_distortion(self, frame):                                #!
         return frame

@@ -18,13 +18,13 @@ class RobotResources:
 
 class CircleResources:
     def __init__(self):
-        self.circles = {3:  { 'type': 'calibration',  'model': 'x', 'locked_coordinate': (0, 0, 0), 'size': 145 }, \
-                        5:  { 'type': 'calibration', 'model': 'y', 'locked_coordinate': (0, 100, 0), 'size': 145 },  \
-                        7:  { 'type': 'calibration', 'model': 'z', 'locked_coordinate': (-50, 0, 0), 'size': 145 }, \
+        self.circles = {3:  { 'type': 'calibration',  'model': 'floor_gang', 'locked_coordinate': (0, 0, 0), 'size': 145 }, \
+                        5:  { 'type': 'calibration', 'model': 'floor_gang', 'locked_coordinate': (400, 250, 0), 'size': 145 },  \
+                        7:  { 'type': 'calibration', 'model': 'floor_gang', 'locked_coordinate': (0, 500, 0), 'size': 145 }, \
                         4:  { 'type': 'robot', 'model': '1', 'circle_number': '1', 'size': 145 }, \
                         6:  { 'type': 'robot', 'model': '1', 'circle_number': '2', 'size': 145 }, \
                         8:  { 'type': 'robot', 'model': '1', 'circle_number': '3', 'size': 145 }, \
-                        9: { 'type': 'robot', 'model': '1', 'circle_number': '5', 'size': 145 }, \
+                        9:  { 'type': 'robot', 'model': '1', 'circle_number': '5', 'size': 145 }, \
                         10: { 'type': 'robot', 'model': '1', 'circle_number': '4', 'size': 145 } }
 
     def get_by_id(self, id):

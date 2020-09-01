@@ -13,33 +13,36 @@ class CameraCalibration:
     def __init__(self):
         pass
 
-    def calibration(camera, robot_ellipses, circle_resources):
+    def calibrate(self, camera, robot_ellipses, circle_resources):
         if len(robot_ellipses) < 3:
             raise Exception("There needs to be a minimum of 3 ellipses")
 
         #Get the ellipses local coordinates
         coordinates = self._get_ellipse_coordinates(robot_ellipses, circle_resources)
         coordinate_ellipses = self._combine_ellipses_and_coordinates(robot_ellipses, coordinates)
+
         #calculate the camera's (x, y, z) coordinates
         camera_position = self._calculate_camera_position(coordinate_ellipses)
         camera.set_position(camera_position)
+
+        print(camera_position)
         #Calculate the camera's angle
-        camera_angle = self._calculate_camera_angle(camera, coordinate_ellipses)
-        camera.set_angle(camera_angle)
+        #camera_angle = self._calculate_camera_angle(camera, coordinate_ellipses)
+        #camera.set_angle(camera_angle)
         #Calculate the camera's rotation abount z-axis
-        camera_rotation = self._calculate_camera_rotation(camera, coordinate_ellipses)
-        camera.set_angle(camera_rotation)
+        #camera_rotation = self._calculate_camera_rotation(camera, coordinate_ellipses)
+        #camera.set_angle(camera_rotation)
 
     def _get_ellipse_coordinates(self, ellipses, circle_resources):
         #Get coordinates for each ellipse by using the circle_resources
         return { ellipse.get_id(): {'coor': circle_resources.get_coordiante_by_id(ellipse.get_id())} for ellipse in ellipses}
 
     def _combine_ellipses_and_coordinates(self, ellipses, coordinates):
-        return [{'ellipse': ellipse, 'coordinate': coordinates[ellipse.get_id()]} for ellipse in ellispes]
+        return [{'ellipse': ellipse, 'coordinate': coordinates[ellipse.get_id()]} for ellipse in ellipses]
 
     def _calculate_camera_position(self, coordinate_ellipses):
         camera_height = self._calculate_camera_height(coordinate_ellipses)
-        distances_to_camera = self._calculate_distances_to_camera(coordinate_ellipses)
+        distances_to_camera = self._calculate_distances_to_camera_plane(coordinate_ellipses)
         coor_dist_pairs = self._convert_to_coor_dist_pairs(coordinate_ellipses, distances_to_camera)
         x, y = self._calculate_circles_intersection(coor_dist_pairs)
         camera_position = (x, y, camera_height)
@@ -69,11 +72,11 @@ class CameraCalibration:
     def _convert_to_coor_dist_pairs(self, coordinate_ellipses, distances):
         coor_dist_pairs = []
         for coor_ellipse in coordinate_ellipses:
-            coordinate = coor_ellipse['coordinate']
-            ellispe = coor_ellipse['ellipse']
+            coordinate = coor_ellipse['coordinate']['coor']
+            ellipse = coor_ellipse['ellipse']
             plane_dist = distances[ellipse.get_id()]
             pair = {'coordinate': coordinate, 'distance': plane_dist}
-            coord_dist_pairs.append(pair)
+            coor_dist_pairs.append(pair)
         return coor_dist_pairs
 
     def _calculate_circles_intersection(self, circles):
@@ -87,9 +90,9 @@ class CameraCalibration:
         for intersection in intersection_list:
             if intersection['score'] < min_intersection['score']:
                 min_intersection = intersection
-        return min_intersection
+        return min_intersection['coordinate']
 
-    def _circles_edge_gradient_descent(circles, start_circle):
+    def _circles_edge_gradient_descent(self, circles, start_circle):
         current_point = start_circle['coordinate']
         previous_point = None
         jump = 8
@@ -97,43 +100,57 @@ class CameraCalibration:
         while previous_point != current_point and minimum_jump == 1:
             if previous_point == current_point:
                 jump /= 2
-            coor_error_list = self._calculate_gradiant_jump_errors(circles, current_point)
+            coor_error_list = self._calculate_gradiant_jump_errors(circles, current_point, jump)
             coor_error = self._find_minimum_error(coor_error_list)
             previous_point = current_point
             current_point = coor_error['coordinate']
-        return current_point, error
+        return current_point, coor_error['error']
 
     def _calculate_gradiant_jump_errors(self, circles, starting_point, jump_size):
         coor_error_list = []
-        coor_error_start = self._calculate_gradiant_jump_error(circles, (starting_point[0], starting_point[1]))
+        coor = starting_point
+        
+        coor_error_start = self._calculate_gradiant_jump_error(circles, (coor[0], coor[1]))
         coor_error_list.append(coor_error_start)
-        coor_error_right = self._calculate_gradiant_jump_error(circles, (starting_point[0]+jump_size, starting_point[1]))
+
+        coor_error_right = self._calculate_gradiant_jump_error(circles, (coor[0]+jump_size, coor[1]))
         coor_error_list.append(coor_error_right)
-        coor_error_up = self._calculate_gradiant_jump_error(circles, (starting_point[0], starting_point[1]+jump_size))
+
+        coor_error_up = self._calculate_gradiant_jump_error(circles, (coor[0], coor[1]+jump_size))
         coor_error_list.append(coor_error_up)
-        coor_error_left = self._calculate_gradiant_jump_error(circles, (starting_point[0]-jump_size, starting_point[1]))
+
+        coor_error_left = self._calculate_gradiant_jump_error(circles, (coor[0]-jump_size, coor[1]))
         coor_error_list.append(coor_error_left)
-        coor_error_down = self._calculate_gradiant_jump_error(circles, (starting_point[0], starting_point[1]-jump_size))
+
+        coor_error_down = self._calculate_gradiant_jump_error(circles, (coor[0], coor[1]-jump_size))
         coor_error_list.append(coor_error_down)
+
         return coor_error_list
 
     def _calculate_gradiant_jump_error(self, circles, coordinate):
-        error_start = self.find_aggragated_intersection_error(circles, coordinate)
+        error_start = self._find_aggregated_intersection_error(circles, coordinate)
         coor_error = {'coordinate': coordinate, 'error':error_start}
         return coor_error
 
     def _find_aggregated_intersection_error(self, circles, coordinate):
         error = 0
         for circle in circles:
-            circle_center = circle['center']
-            circle_radius = circle['radius']
+            circle_center = self._circle_to_xy_coordinate(circle)
+            circle_radius = circle['distance']
             angle_RAD = self._find_vector_angle(circle_center, coordinate)
             edge_coor = self._find_circle_edge_from_angle(angle_RAD, circle_radius)
             distance = math.sqrt((coordinate[0] - edge_coor[0])**2 + (coordinate[1] - edge_coor[1])**2)
             error += distance
-        return dist
+        return error
+
+    def _circle_to_xy_coordinate(self, circle):
+        coordinate_3d = circle['coordinate']
+        coordinate_2d = (coordinate_3d[0], coordinate_3d[1])
+        return coordinate_2d
 
     def _find_vector_angle(self, point_a, point_b):
+        if point_a == point_b:
+            return 0
         vector = (point_b[0] - point_a[0], point_b[1] - point_a[1])
         length_vector = math.sqrt(vector[0]**2 + vector[1]**2)
         normalized_y = vector[1] / length_vector
@@ -152,15 +169,15 @@ class CameraCalibration:
     def _calculate_camera_angle(self, camera, coordinate_ellipses):
         image_shape = camera.get_size()
         ellipses = [coordinate_ellipse['ellipse'] for coordinate_ellipse in coordinate_ellipses]
-        A, b = _fill_A_b_regression_matrix(ellipses, image_shape)
-        result = _regression_result_matrix(A, b)
+        A, b = self._fill_A_b_regression_matrix(ellipses, image_shape)
+        result = self._regression_result_matrix(A, b)
         center_angle = result[0] + result[1] * math.log(int(image_shape[0]/2))
         camera_angle = center_angle
         return camera_angle, result
 
     def _regression_result_matrix(self, A, b):
-        A_t = np.matrix.transpose(A_numpy)
-        inv = np.linalg.inv(A_t.dot(A_numpy))
+        A_t = np.matrix.transpose(A)
+        inv = np.linalg.inv(A_t.dot(b))
         Ab = A_t.dot(b)
         result = inv.dot(Ab)
         return result
@@ -183,7 +200,7 @@ class CameraCalibration:
 
 
     def _calculate_camera_rotation(self, camera, coordinate_ellipses):
-        pass
+        return True
 
 
 

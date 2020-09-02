@@ -83,19 +83,22 @@ class SpecialEllipses:
         return EllipseHelpFunction.is_ellipse_inside_ellipse(secondary_ellipse, primary_ellipse)
 
     def _calc_pixel_length_mm(self, robot_ellipse, cam, circle_info):
-        circle_size = circle_info.get_size_by_id(robot_ellipse.get_id())
-        diameter = robot_ellipse.get_max_size() * 2
-        pixel_length =  circle_size / diameter                                  #millimeters
-        return pixel_length
+        circle_size_mm = circle_info.get_size_by_id(robot_ellipse.get_id())
+        diameter_px = robot_ellipse.get_max_size() * 2
+        pixel_length_mm =  circle_size_mm / diameter_px                
+        return pixel_length_mm
 
     def _dist_to_robot_ellipse(self, robot_ellipse, cam, pixel_length_mm):
-        image_height_mm = cam.get_size_from_known_degrees() * pixel_length_mm
-        view_degrees_RAD = cam.get_cam_info().get_known_view_degrees('rad')
-        unit_height = math.sin(view_degrees_RAD)
-        unit_width = math.cos(view_degrees_RAD)
-        height_ratio = (image_height_mm / 2) / unit_height
-        triangle_width = height_ratio * unit_width
-        return triangle_width
+        image_size_mm = cam.get_size_from_known_degrees() * pixel_length_mm
+        view_angle_RAD = cam.get_cam_info().get_known_view_degrees('rad')
+
+        unit_size = math.sin(view_angle_RAD/2)
+        unit_dist = math.cos(view_angle_RAD/2)
+
+        size_factor = image_size_mm / unit_size
+        distance = unit_dist * size_factor
+
+        return distance
 
     def _dist_from_center_mm(self, robot_ellipse, cam, pixel_length_mm):
         width_diff = (cam.get_width()/2) - robot_ellipse.get_center('x')

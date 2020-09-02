@@ -8,7 +8,7 @@ camera_properties = {   'view_degrees_horizontal': 80,
                         'view_degrees_vertical': None,
                         'dpi': None,
                         'focal_length': None,
-                        'focus': None }
+                        'focus': 100 }
 
 cam_info = CameraInfo(address = 1, internal_properties = camera_properties)
 circle_info = CircleResources()

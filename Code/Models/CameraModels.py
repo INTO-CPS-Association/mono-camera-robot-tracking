@@ -55,6 +55,9 @@ class CameraInfo:
     def get_focus(self):
         return self.focus
 
+    def set_focus(self, focus):
+        self.focus = focus
+
 
 
 class Camera:
@@ -136,3 +139,9 @@ class Camera:
             return self.get_height()
         else:
             return self.get_width()
+
+    def set_focus(self, focus):
+        self.cam_info.set_focus(focus)
+
+    def get_focus(self):
+        return self.cam_info.get_focus()

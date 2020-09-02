@@ -4,7 +4,6 @@ from EllipseDetection import *
 from Calibration import CameraCalibration
 from SpecialEllipses import SpecialEllipses
 
-from sklearn.cluster import KMeans, MeanShift, estimate_bandwidth
 import cv2
 import operator
 
@@ -24,11 +23,32 @@ class RobotTracking:
     def _init_cameras(self, cam_info_list):
         cameras = self._setup_cameras(cam_info_list)
         for cam in cameras:
+            self._calibrate_camera_focus(cam)
             calibration_ellipses = []
             # while len(calibration_ellipses) < 3:
             #     calibration_ellipses = self._get_calibration_ellipses(cam, frame_iterations=7)
             # self.cam_calibration.calibrate(cam, calibration_ellipses, self.circle_info)
         return cameras
+
+    def _calibrate_camera_focus(self, cam, combinations = 8):
+        if cam.get_focus() != None:
+            return 
+
+        frame = cam.get_frame()
+        focus_range = [0, 255]
+        step_size = int(focus_range[1] / 8)
+
+        focus_strengths = []
+        for focus_level in range(focus_range[0], focus_range[1], step_size):
+            cam.set_focus(focus_level)
+            ellipses = self.special_ellipses.get_raw_ellipses(cam, frame)
+            strength = len(ellipses)
+            focus_strengths.append((focus_level, strength))
+
+        focus = max(focus_strengths, key=operator.itemgetter(1))[0]
+        cam.set_focus(focus)
+
+
 
     def _setup_cameras(self, cam_info_list):
         camera_list = []
@@ -70,20 +90,20 @@ class RobotTracking:
         return 1
 
     def _get_ellipses_from_group(self, cam, frame, ellipse_group):
-        special_ellipses = self.special_ellipses.get_from_frame(cam, frame)
-        group_ellipses = self._get_ellipses_group(special_ellipses, ellipse_group)
+        robot_ellipses = self.special_ellipses.get_from_frame(cam, frame, self.circle_info)
+        group_ellipses = self._get_ellipses_group(robot_ellipses, ellipse_group)
         self._fill_in_robot_ellipses_info(group_ellipses, cam)
         return group_ellipses
 
-    def _get_ellipses_group(self, special_ellipses, ellipse_group):
+    def _get_ellipses_group(self, robot_ellipses, ellipse_group):
         robot_ellipse_group = []
         for robot_ellipse in robot_ellipses:
             if self.circle_info.valid_id(robot_ellipse.get_id()):
-                if self.circle_info.get_type_by_id(robot_ellipse.get_id()) == group_name:
+                if self.circle_info.get_type_by_id(robot_ellipse.get_id()) == ellipse_group:
                     robot_ellipse_group.append(robot_ellipse)
         return robot_ellipse_group
 
-    def _fill_in_robot_ellipses_info(robot_ellipses, cam):
+    def _fill_in_robot_ellipses_info(self, robot_ellipses, cam):
         for robot_ellipse in robot_ellipses:
             distance = self.special_ellipses.calc_distance(robot_ellipse, cam, self.circle_info)
             angle = self.special_ellipses.calc_angle(robot_ellipse)

@@ -1,13 +1,21 @@
 from EllipseDetection import *
 
+from sklearn.cluster import KMeans, MeanShift, estimate_bandwidth
+import cv2
+import operator
 
 class SpecialEllipses:
     def __init__(self, error_threshold):
         self.ellipse_detector = EllipseDetection(error_threshold)
         self.ellipse_filtering = EllipseFiltering(RobotEllipseRules())
 
-    def get_from_frame(self, cam, frame, ellipse_group):
-        return self._get_special_ellipses(cam, frame, ellipse_group)
+    def get_raw_ellipses(self, cam, frame):
+        color_corrected_frame = self._correct_colors_in_frame(frame)
+        ellipses = self.ellipse_detector.detect(color_corrected_frame)
+        return ellipses
+
+    def get_from_frame(self, cam, frame, circle_info):
+        return self._get_special_ellipses(cam, frame, circle_info)
 
     def calc_distance(self, robot_ellipse, cam, circle_info):
         pixel_length_mm = self._calc_pixel_length_mm(robot_ellipse, cam, circle_info)
@@ -20,16 +28,16 @@ class SpecialEllipses:
         return math.acos(robot_ellipse.get_ratio()) * (180 / math.pi)
 
     def find_standard_representations(self, robot_ellipses, frame_iterations = 1):
-        number_of_cluster = self._estimate_number_of_clusters(len(all_ellipses), frame_iterations)
-        cluster_centers = self._find_cluster_centers(all_ellipses, number_of_cluster)
-        cali_robot_ellipses = self._represent_cluster_centers_as_ellipses(all_ellipses, cluster_centers)
+        number_of_cluster = self._estimate_number_of_clusters(len(robot_ellipses), frame_iterations)
+        cluster_centers = self._find_cluster_centers(robot_ellipses, number_of_cluster)
+        cali_robot_ellipses = self._represent_cluster_centers_as_ellipses(robot_ellipses, cluster_centers)
         return cali_robot_ellipses
 
-    def _get_special_ellipses(self, cam, frame):
+    def _get_special_ellipses(self, cam, frame, circle_info):
         color_corrected_frame = self._correct_colors_in_frame(frame)
         ellipses = self.ellipse_detector.detect(color_corrected_frame)
         special_ellipses = self.ellipse_filtering.filter(ellipses)
-        robot_ellipses = self._convert_ellipses_to_robot_ellipses(special_ellipses)
+        robot_ellipses = self._convert_ellipses_to_robot_ellipses(special_ellipses, circle_info)
         robot_ellipses = self._filter_out_double_ellipses(robot_ellipses)
         return robot_ellipses
 
@@ -55,11 +63,11 @@ class SpecialEllipses:
         clahe_frame = clahe.apply(gray_img)
         return clahe_frame
 
-    def _convert_ellipses_to_robot_ellipses(self, ellipses):
+    def _convert_ellipses_to_robot_ellipses(self, ellipses, circle_info):
         robot_ellipse_list = []
         for primary_ellipse in ellipses:
             robot_ellipse = self._create_robot_ellipse(primary_ellipse, ellipses)
-            if robot_ellipse.valid() == True and self.circle_info.valid_id(robot_ellipse.get_id()) == True:
+            if robot_ellipse.valid() == True and circle_info.valid_id(robot_ellipse.get_id()) == True:
                 robot_ellipse_list.append(robot_ellipse)
         return robot_ellipse_list
 

@@ -1,4 +1,4 @@
-from RobotResources import RobotResources, CircleResources
+from Resources import RobotResources, CircleResources
 from Models.EllipseModels import Ellipse, RobotEllipse
 
 import copy

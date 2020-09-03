@@ -1,4 +1,4 @@
-
+from Models.CameraModels import CameraInfo
 
 class RobotResources:
     def __init__(self):
@@ -48,3 +48,34 @@ class CircleResources:
 
     def valid_id(self, id):
         return id in self.circles
+
+
+
+class CameraInfoRecouces:
+    def __init__(self):
+        self._camera_properties = {
+            'GEA': { 'view_degrees_horizontal': 80 },
+            'Logitech-C210': { 'view_degrees_vertical': 26.14726516235629 },
+            'GoPro-Hero6': {}
+        }
+
+    def get_camInfo_properties_by_name(self, name):
+        return self._camera_properties[name]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#Nothing

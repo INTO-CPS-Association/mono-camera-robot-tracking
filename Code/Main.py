@@ -1,16 +1,15 @@
 from Robot import RobotTracking
 from Communication import Subscribers
 from Models.CameraModels import CameraInfo
-from RobotResources import RobotResources, CircleResources
+from Resources import RobotResources, CircleResources, CameraInfoRecouces
 import time
 
-camera_properties = {   'view_degrees_horizontal': 80,
-                        'view_degrees_vertical': None,
-                        'dpi': None,
-                        'focal_length': None,
-                        'focus': 100 }
+from ExtraHelpTools import CameraInformationHelpTool
 
-cam_info = CameraInfo(address = 1, internal_properties = camera_properties)
+camInfos = CameraInfoRecouces()
+logitec_prob = camInfos.get_camInfo_properties_by_name('Logitech-C210')
+
+cam_info = CameraInfo(address = 0, internal_properties = logitec_prob)
 circle_info = CircleResources()
 robot_info = RobotResources()
 

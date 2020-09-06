@@ -90,7 +90,7 @@ class RobotTracking:
         final_positions = []
         for model_key in robot_position_map:
             position = robot_position_map[model_key][0]
-            final_positions.append(position)
+            final_positions.append({'model': model_key, 'position': position})
         return final_positions
 
     def _append_positions_to_dict(self, position_dict, new_positions):
@@ -99,7 +99,7 @@ class RobotTracking:
             coordinate = position['position']
             if model not in position_dict:
                 position_dict[model] = []
-            position_dict[model].append[coordinate]
+            position_dict[model].append(coordinate)
 
     def _set_of_robot_models(self, robot_ellipses):
         model_list = [self.circle_info.get_model_by_id(robot_ellipse.get_id()) for robot_ellipse in robot_ellipses]
@@ -112,6 +112,7 @@ class RobotTracking:
         for count, robot_model in enumerate(robot_models):
             dist = robot_ellipses[count].get_distance()
             robot_position = { 'name': robot_model, 'position': { 'x': int(dist), 'y': int(dist/2), 'z': 0, 'r': dist/1000 } }
+            robots_position.append(robot_position)
         return robots_position
 
     def _visualize(self, cam, frame, robot_ellipses):

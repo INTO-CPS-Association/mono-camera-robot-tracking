@@ -6,7 +6,7 @@ from SpecialEllipses import SpecialEllipses
 
 import cv2
 import operator
-
+import random
 
 
 
@@ -32,7 +32,7 @@ class RobotTracking:
 
     def _calibrate_camera_focus(self, cam, combinations = 8):
         if cam.get_focus() != None:
-            return 
+            return
 
         frame = cam.get_frame()
         focus_range = [0, 255]
@@ -74,13 +74,45 @@ class RobotTracking:
 
 
     def find_robots(self):
+        all_robot_positions = {}
         for cam in self.cameras:
             frame = cam.get_frame()
-            robot_ellipses = self._get_ellipses_from_group(cam, frame, 'calibration')
+            robot_ellipses = self._get_ellipses_from_group(cam, frame, 'robot')
+            robot_positions = self._generate_robot_positions_test(robot_ellipses)
+            self._append_positions_to_dict(all_robot_positions, robot_positions)
             status = self._visualize(cam, frame, robot_ellipses)
             if status == -1:
                 return -1
-        return []
+        positions = self._concentrate_robot_positions(all_robot_positions)
+        return positions
+
+    def _concentrate_robot_positions(self, robot_position_map):
+        final_positions = []
+        for model_key in robot_position_map:
+            position = robot_position_map[model_key][0]
+            final_positions.append(position)
+        return final_positions
+
+    def _append_positions_to_dict(self, position_dict, new_positions):
+        for position in new_positions:
+            model = position['name']
+            coordinate = position['position']
+            if model not in position_dict:
+                position_dict[model] = []
+            position_dict[model].append[coordinate]
+
+    def _set_of_robot_models(self, robot_ellipses):
+        model_list = [self.circle_info.get_model_by_id(robot_ellipse.get_id()) for robot_ellipse in robot_ellipses]
+        model_set = set(model_list)
+        return model_set
+
+    def _generate_robot_positions_test(self, robot_ellipses):
+        robot_models = self._set_of_robot_models(robot_ellipses)
+        robots_position = []
+        for count, robot_model in enumerate(robot_models):
+            dist = robot_ellipses[count].get_distance()
+            robot_position = { 'name': robot_model, 'position': { 'x': int(dist), 'y': int(dist/2), 'z': 0, 'r': dist/1000 } }
+        return robots_position
 
     def _visualize(self, cam, frame, robot_ellipses):
         if self.visual_feedback == True:

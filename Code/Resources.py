@@ -45,6 +45,12 @@ class CircleResources:
         else:
             raise Exception("No locked_coordinate-type for the 'type'='robot' ellipses. Try with an 'type'='calibration' ellipse instead")
 
+    def get_model_by_id(self, id):
+        if 'model' in self.get_by_id(id):
+            return self.get_by_id(id)['model']
+        else:
+            raise Exception("No model-type for this id. This is probably an error with the resouce")
+
 
     def valid_id(self, id):
         return id in self.circles
@@ -55,12 +61,16 @@ class CameraInfoRecouces:
     def __init__(self):
         self._camera_properties = {
             'GEA': { 'view_degrees_horizontal': 80 },
-            'Logitech-C210': { 'view_degrees_vertical': 26.14726516235629 },
-            'GoPro-Hero6': {}
+            'Logitech-C210': { 'view_degrees_vertical': 26.14 },
+            'GoPro-Hero6': {},
+            'Lenevo': { 'view_degrees_horizontal': 60 }
         }
 
     def get_camInfo_properties_by_name(self, name):
         return self._camera_properties[name]
+
+    def get_names(self):
+        return list(self._camera_properties.keys())
 
 
 

@@ -23,7 +23,9 @@ Examples of circles can here be seen, with the id of 3, 5, and 7 correspondingly
 
 *OBS!: Where the smaller circles is placed does not matter.*
 
+
 **Calibration Circles**
+
 The Calibration Circles is used to calibrate the camera. These circles' coordinates must be fixed thoughout the duration of the program - Each circle's coordinate and size must be accessible for the program (See "Setup Software").
 It must be possible for the camera to see at least three Calibration Circles for it to calibrate. As long as this is met will the camera be able to find its own coordinates, height, angle, and viewpoint. An image with three Calibration Circles places on the ground can be seen after this section. The circles can be further apart or closer to each other, depending on the enviroment, the only requirement is that they are not placed on a slope.
 
@@ -33,6 +35,7 @@ It must be possible for the camera to see at least three Calibration Circles for
 
 
 **Robot Circles**
+
 The Robot Circles is used to track the robots. The camera must be able to see at least three circles on a single robot before tracking is possible. The circles can with advantage be placed on each side of a robot to maximize the likelihood of the camera seeing three of them. Each circle's placement on the robot and its size must be accessible for the program (See "Setup Software).
 
 
@@ -50,15 +53,40 @@ Image of the circles being tracked in the image:
 
 
 
-
 ## Setup Hardware
+One of the following cameras-types is required for setting up the Hardware:
+1. USB Camera
+2. HDMI Camera
 
+The USB Camera can be connected directly to the PC and does not require extra equipment.
+
+The HDMI Camera probably needs the following part:
+* HDMI-To-HDMI or MicroHDMI-To-HDMI 
+* HDMI-To-USB converter
+
+The extra converters for the HDMI Camera is required because a computer's HDMI-port only is an output and cannot take a HDMI-signal in from the camera. The HDMI signal needs, therefore, to be converted to an USB-signal which the PC can take as an input signal.
+
+*OBS!: Higher resolution means better tracking BUT slower performance*
+*OBS!: Multiple cameras can be connected to the program in case the track is too large.*
 
 
 ## Setup Software
 
 
 ### Language and dependencies
+This project uses **Python 3.6** or higher. The following libraries is used in the project and must be installed for python befor use:
+* Random (default)
+* Operator (default)
+* Time (default)
+* Math (default)
+* Copy (default)
+* scikit-learn
+* Scikit-image
+* Numpy
+* Opencv-python
+
+*Hint: Use pip to install the libraries + the ones with (default) does not need to be installed* 
+
 
 
 ### Can't find the cameras information?

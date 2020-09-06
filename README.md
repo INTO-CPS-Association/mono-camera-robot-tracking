@@ -54,7 +54,7 @@ Image of the circles being tracked in the image:
 
 
 ## Setup Hardware
-One of the following cameras-types is required for setting up the Hardware:
+**One** of the following cameras-types is required for setting up the Hardware:
 1. USB Camera
 2. HDMI Camera
 
@@ -67,6 +67,7 @@ The HDMI Camera probably needs the following part:
 The extra converters for the HDMI Camera is required because a computer's HDMI-port only is an output and cannot take a HDMI-signal in from the camera. The HDMI signal needs, therefore, to be converted to an USB-signal which the PC can take as an input signal.
 
 *OBS!: Higher resolution means better tracking BUT slower performance*
+
 *OBS!: Multiple cameras can be connected to the program in case the track is too large.*
 
 

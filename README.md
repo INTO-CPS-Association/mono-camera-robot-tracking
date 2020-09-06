@@ -12,6 +12,28 @@ It is as easy as:
 **Notice:** Read *Setup Hardware* to see what is needed beforehand for the camera to track the robots.
 
 ### Uses Circles for the tracking
+The reason only a single camera is needed and can be places randomly is because other objecs is used this information's stead.
+What is used is circles. These circles is split up into two categories:
+* Calibration Circles
+* Robot Circles
+
+The two kind of circles look the same but are seperated by the ID on them (Number of smaller circles inside).
+Examples of circles can here be seen, with the id of 3, 5, and 7 correspondingly. 
+![Circle IDs](Images/circle_ids.png)
+
+*OBS!: Where the smaller circles is placed does not matter.*
+
+**Calibration Circles**
+The Calibration Circles is used to calibrate the camera. These circles' coordinates must be fixed thoughout the duration of the program - Each circle's coordinate and size must be accessible for the program (See "Setup Software").
+It must be possible for the camera to see at least three Calibration Circles for it to calibrate. As long as this is met will the camera be able to find its own coordinates, height, angle, and viewpoint. An image with three Calibration Circles places on the ground can be seen after this section. The circles can be further apart or closer to each other, depending on the enviroment, the only requirement is that they are not placed on a slope.
+
+![Calibration Circles](Images/calibration_circles.png)
+
+*OBS!: It is only when calibrating that the Calibration Circles must be visible. The circles can be hidden by e.g. the robots afterwards.*
+
+
+**Robot Circles**
+The Robot Circles is used to track the robots. The camera must be able to see at least three circles on a single robot before tracking is possible. The circles can with advantage be placed on each side of a robot to maximize the likelihood of the camera seeing three of them. Each circle's placement on the robot and its size must be accessible for the program (See "Setup Software).
 
 
 
@@ -36,10 +58,10 @@ Image of the circles being tracked in the image:
 ## Setup Software
 
 
-# Language and libraries
+### Language and dependencies
 
 
-# Can't find the cameras information?
+### Can't find the cameras information?
 
 
 

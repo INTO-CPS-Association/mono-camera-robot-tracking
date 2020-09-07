@@ -144,7 +144,12 @@ camera_info = CameraInfo(address = 0, internal_properties = camera_prob)
 The focus have in this example been set to 150. The focus value can be every integer between *0 and 255*.
 
 
-## Example
+## Example Program
+An example file is available to show how the project can be set up and used in a small program. The program prints the robots' position to the terminal.
+
+The example can be found in the file "Example.py". The code will be explained here to give an insight into how it works. The explaination starts from the top and moved down.
+
+**Explanation of the Example program**
 
 
 

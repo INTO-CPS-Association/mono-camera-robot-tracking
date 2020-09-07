@@ -54,7 +54,7 @@ Image of the circles being tracked in the image:
 
 
 ## Setup Hardware
-**One** of the following cameras-types is required for setting up the Hardware:
+**One** of the following cameras-types can be used when setting up the Hardware:
 1. USB Camera
 2. HDMI Camera
 
@@ -66,7 +66,7 @@ The HDMI Camera probably needs the following part:
 
 The extra converters for the HDMI Camera is required because a computer's HDMI-port only is an output and cannot take a HDMI-signal in from the camera. The HDMI signal needs, therefore, to be converted to an USB-signal which the PC can take as an input signal.
 
-*OBS!: Higher resolution means better tracking BUT slower performance*
+*OBS!: Higher resolution means better tracking BUT slower performance. Larger circles means better tracking as well*
 
 *OBS!: Multiple cameras can be connected to the program in case the track is too large.*
 
@@ -81,17 +81,67 @@ This project uses **Python 3.6** or higher. The following libraries is used in t
 * Time (default)
 * Math (default)
 * Copy (default)
-* scikit-learn
+* Scikit-learn
 * Scikit-image
 * Numpy
 * Opencv-python
 
-*Hint: Use pip to install the libraries + the ones with (default) does not need to be installed* 
-
+*Hint: Use Pip to install the libraries + the ones with (default) does not need to be installed* 
 
 
 ### Can't find the cameras information?
+Can't find the required camera information on the internet? No problem! The information can be found manually with a bit of work. A help function is avaiable in the program to make this manual setup easier.
 
+The function can be found in "*ExtraHelpTools.py*" as the class "*CameraInformationHelpTool*". There is two functions in this class that can be used to find the information nessesary for calibrating the camera:
+* get_viewing_angle_height(object_height, length_from_camera)
+* get_viewing_angle_width(object_width, langth_from_camera)
+
+This is how the functions is used:
+1. Decide on a viewing angle you want to find (height in this example)
+2. Find a object (e.g. a piece of paper) and measure its height
+3. Start the camera you want to find the information for (NOT with the program, but just to see what it sees)
+4. Move the object you chose closer/farther to/from the camera until the top and bottom of the object hits the top and bottom of the image frame
+    * See the two images under these step to see an example of this
+5. Measure the length from the camera when *step 4* is met
+6. Plot the measured height and measured length from camera into the function. It will return the viewing angle used for the camera information
+    * In this case 'view_degrees_vertical'
+
+Example code:
+
+'''python
+view_degree_vertical = CameraInformationHelpTool.get_viewing_angle_height(201, 550)
+camera_prob = { 'view_degrees_vertical': view_degree_vertical }
+camera_info = CameraInfo(address = 0, internal_properties = camera_prob)
+'''
+
+The object in the image frame:
+![Camera setup - In frame](/Images/object_in_frame.png)
+
+The object in the image aligning with the to top and bottom of the frame:
+![Camera setup - Align with frame](/Images/object_aligning_with_frame.png)
+
+
+
+### Focus
+The focus will automatically be calibrated if nothing else has been defined in the camera properties. This auto-focus will take a bit of time each time the program starts and does not guarantee the best focus. The focus can also be manually set if a faster upstart time or better calibration is wanted. The auto and manual way of calibrating the focus can be seen in the following two code snippets. 
+
+Auto Calibration:
+'''python
+camera_prob = { 'view_degrees_vertical': view_degree_vertical,
+                'focus': None }
+camera_info = CameraInfo(address = 0, internal_properties = camera_prob)
+'''
+
+The focus will per default be set to 'None', this example is to show that the Auto calibration is done when the focus parameter has not been set.
+
+Manual Calibration:
+'''python
+camera_prob = { 'view_degrees_vertical': view_degree_vertical,
+                'focus': 150 }
+camera_info = CameraInfo(address = 0, internal_properties = camera_prob)
+'''
+
+The focus have in this example been set to 150. The focus value can be every integer between *0 and 255*.
 
 
 ## Example

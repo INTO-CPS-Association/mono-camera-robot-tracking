@@ -12,8 +12,17 @@ class RobotResources:
                                 '5': { 'surface': 'top', 'position_center': (23.5, 17.25, 22.5) } }
                        } }
 
-    def get_by_id(self, id):
-        return self.robots[id]
+    def get_by_id(self, robot_id):
+        return self.robots[robot_id]
+
+    def get_circle_by_id_and_circle_number(self, robot_id, cirlce_number):
+        return self.robots[robot_id]['circles'][circle_number]
+
+    def get_dimensions_by_id(self, robot_id):
+        return self.robots[robot_id]['dimensions']
+
+    def get_circle_placement_by_id(self, robot_id, circle_number):
+        return self.robots[robot_id]['circles'][circle_number]['position_center']
 
 
 class CircleResources:

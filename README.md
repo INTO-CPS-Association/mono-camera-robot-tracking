@@ -13,11 +13,12 @@
 * Example Program
   * Explanation of the example program
 * Personalize extensions
-
+  * RobotResources Interface
+  * CircleResources Interface
 
 
 ## Project Description
-The purpose of this project is to give a tool for robot tracking which is simple to setup and easy to bring along. Examples of use can be in demos for conferences, light weight is prefered for traveling purposes and a simple setup is wanted in a already stressing new environment.
+The purpose of this project is to give a tool for robot tracking which is simple to setup and easy to bring along. Examples of use can be in demos for conferences, light weight is preferred for traveling purposes and a simple setup is wanted in a already stressing new environment.
 The technology uses just a single camera to track as many robots as wanted. The camera can be placed everywhere and does not need a fixed location, nor does it need to be placed at a known height, angle to the ground, or viewing-angle of the track.
 It is as easy as:
 1. setup camera at random
@@ -28,12 +29,12 @@ It is as easy as:
 **Notice:** Read *Setup Hardware* to see what is needed beforehand for the camera to track the robots.
 
 ### Uses Circles for the tracking
-The reason only a single camera is needed and can be places randomly is because other objecs is used this information's stead.
+The reason only a single camera is needed and can be places randomly is because other objects is used this information's stead.
 What is used is circles. These circles is split up into two categories:
 * Calibration Circles
 * Robot Circles
 
-The two kind of circles look the same but are seperated by the ID on them (Number of smaller circles inside).
+The two kind of circles look the same but are separated by the ID on them (Number of smaller circles inside).
 Examples of circles can here be seen, with the id of 3, 5, and 7 correspondingly.
 ![Circle IDs](Images/circle_ids.png)
 
@@ -42,8 +43,8 @@ Examples of circles can here be seen, with the id of 3, 5, and 7 correspondingly
 
 **Calibration Circles**
 
-The Calibration Circles is used to calibrate the camera. These circles' coordinates must be fixed thoughout the duration of the program - Each circle's coordinate and size must be accessible for the program (See "Setup Software").
-It must be possible for the camera to see at least three Calibration Circles for it to calibrate. As long as this is met will the camera be able to find its own coordinates, height, angle, and viewpoint. An image with three Calibration Circles places on the ground can be seen after this section. The circles can be further apart or closer to each other, depending on the enviroment, the only requirement is that they are not placed on a slope.
+The Calibration Circles is used to calibrate the camera. These circles' coordinates must be fixed throughout the duration of the program - Each circle's coordinate and size must be accessible for the program (See "Setup Software").
+It must be possible for the camera to see at least three Calibration Circles for it to calibrate. As long as this is met will the camera be able to find its own coordinates, height, angle, and viewpoint. An image with three Calibration Circles places on the ground can be seen after this section. The circles can be further apart or closer to each other, depending on the environment, the only requirement is that they are not placed on a slope.
 
 ![Calibration Circles](Images/calibration_circles.png)
 
@@ -91,7 +92,7 @@ The extra converters for the HDMI Camera is required because a computer's HDMI-p
 
 
 ### Language and dependencies
-This project uses **Python 3.6** or higher. The following libraries is used in the project and must be installed for python befor use:
+This project uses **Python 3.6** or higher. The following libraries is used in the project and must be installed for python before use:
 * Random (default)
 * Operator (default)
 * Time (default)
@@ -106,9 +107,9 @@ This project uses **Python 3.6** or higher. The following libraries is used in t
 
 
 ### Can't find the camera's information?
-Can't find the required camera information on the internet? No problem! The information can be found manually with a bit of work. A help function is avaiable in the program to make this manual setup easier.
+Can't find the required camera information on the internet? No problem! The information can be found manually with a bit of work. A help function is available in the program to make this manual setup easier.
 
-The function can be found in "*ExtraHelpTools.py*" as the class "*CameraInformationHelpTool*". There is two functions in this class that can be used to find the information nessesary for calibrating the camera:
+The function can be found in "*ExtraHelpTools.py*" as the class "*CameraInformationHelpTool*". There is two functions in this class that can be used to find the information necessary for calibrating the camera:
 * get_viewing_angle_height(object_height, length_from_camera)
 * get_viewing_angle_width(object_width, langth_from_camera)
 
@@ -163,7 +164,7 @@ The focus have in this example been set to 150. The focus value can be every int
 ## Example Program
 An example file is available to show how the project can be set up and used in a small program. The program prints the robots' position to the terminal.
 
-The example can be found in the file "Example.py". The code will be explained here to give an insight into how it works. The explaination starts from the top and moved down.
+The example can be found in the file "Example.py". The code will be explained here to give an insight into how it works. The explanation starts from the top and moved down.
 
 ### Explanation of the Example program
 
@@ -216,6 +217,7 @@ Only 'view_degrees_vertical' or 'view_degrees_horizontal' is required to set. 'f
 
 
 **Setting up the robot tracking**
+
 Three pieces of information is required for initializing the RobotTracking
 
 * Cameras information
@@ -233,6 +235,7 @@ The 'visual_feedback' is per default 'False'. When set to true, the tracking wil
 
 
 **Using the robot tracking**
+
 The following code will keep finding the robots' position and writing them to the terminal.
 
 ```python
@@ -249,3 +252,38 @@ while True:
 
 
 ## Personalize extensions
+
+It is possible to personalize the two resource files:
+* RobotResources
+* CircleResources
+
+There is a high possibility that you do not want to have the circle or robot information hardcoded into the program. Having these information synchronized with at text-file or a database may bare more suitable for the application.
+
+The Two resource files can, therefore, be changed at will. The only necessary thing is that the personalized resources complies with their interfaces.
+
+**Note: ** These interfaces may be extended in the future as the project gets closer to a version 1.
+
+### RobotResources Interface
+The RobotResources interface consists of the following functions:
+
+* get_by_id(robot_id)
+* get_dimensions_by_id(robot_id)
+* get_circle_by_id_and_circle_number(robot_id, cirlce_number)
+* get_circle_placement_by_id(robot_id, circle_number)
+
+The robot_id and circle_number is found in the CircleResources.
+See the dictionary structure in RobotResources to get an idea of how the data structure can be organized.
+
+
+### CircleResources Interface
+The CircleResources interface consists of the following functions:
+
+* get_by_id(circle_id)
+* get_type_by_id(circle_id)
+* get_size_by_id(circle_id)
+* get_coordiante_by_id(circle_id)
+* get_model_by_id(circle_id)
+* valid_id(circle_id)
+
+Only the circles' id is necessary to access each function. See 'Project Description' to learn how the IDs is found.
+See the dictionary structure in CircleResources to get an idea of how the data structure can be organized.

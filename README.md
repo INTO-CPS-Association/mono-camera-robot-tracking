@@ -3,7 +3,7 @@
 ## Table of content
 
 * Project Description
-  * Uses Circles for the tracking
+  * Uses circles for the tracking
   * Images of project
 * Setup Hardware
 * Setup Software
@@ -21,7 +21,7 @@
 
 
 ## Project Description
-The purpose of this project is to give a tool for robot tracking which is simple to setup and easy to bring along. Examples of use can be in demos for conferences, light weight is preferred for traveling purposes and a simple setup is wanted in a already stressing new environment.
+The purpose of this project is to give a tool for robot tracking which is simple to setup and easy to bring along. An example of use can be in demos for conferences, light weight is preferred for traveling purposes and a simple setup is wanted in a already stressing new environment.
 The technology uses just a single camera to track as many robots as wanted. The camera can be placed everywhere and does not need a fixed location, nor does it need to be placed at a known height, angle to the ground, or viewing-angle of the track.
 It is as easy as:
 1. setup camera at random
@@ -31,23 +31,23 @@ It is as easy as:
 
 **Notice:** Read *Setup Hardware* to see what is needed beforehand for the camera to track the robots.
 
-### Uses Circles for the tracking
-The reason only a single camera is needed and can be places randomly is because other objects is used this information's stead.
-What is used is circles. These circles is split up into two categories:
+### Uses circles for the tracking
+Only a single camera is needed and can be placed at random. This is possible because other objects is used in this information's stead.
+The objects used is circles. These circles is split up into two categories:
 * Calibration Circles
 * Robot Circles
 
 The two kind of circles look the same but are separated by the ID on them (Number of smaller circles inside).
-Examples of circles can here be seen, with the id of 3, 5, and 7 correspondingly.
+An example of circles can here be seen with the ids 3, 5, and 7 correspondingly.
 ![Circle IDs](Images/circle_ids.png)
 
-*OBS!: Where the smaller circles is placed does not matter.*
+*OBS!: Where the smaller circles are placed does not matter as long it is inside of the outer circle.*
 
 
 **Calibration Circles**
 
 The Calibration Circles is used to calibrate the camera. These circles' coordinates must be fixed throughout the duration of the program - Each circle's coordinate and size must be accessible for the program (See "Setup Software").
-It must be possible for the camera to see at least three Calibration Circles for it to calibrate. As long as this is met will the camera be able to find its own coordinates, height, angle, and viewpoint. An image with three Calibration Circles places on the ground can be seen after this section. The circles can be further apart or closer to each other, depending on the environment, the only requirement is that they are not placed on a slope.
+It must be possible for the camera to see at least three Calibration Circles for it to calibrate. As long as this is met will the camera be able to find its own coordinates, height, angle, and viewpoint. An image with three Calibration Circles places on the ground can be seen after this section. The circles can be further apart or closer to each other depending on the environment, the only requirement is that they are not placed on a slope.
 
 ![Calibration Circles](Images/calibration_circles.png)
 
@@ -56,7 +56,7 @@ It must be possible for the camera to see at least three Calibration Circles for
 
 **Robot Circles**
 
-The Robot Circles is used to track the robots. The camera must be able to see at least three circles on a single robot before tracking is possible. The circles can with advantage be placed on each side of a robot to maximize the likelihood of the camera seeing three of them. Each circle's placement on the robot and its size must be accessible for the program (See "Setup Software).
+The Robot Circles is used to track the robots. The camera must be able to see at least three circles on a single robot before tracking is possible. The circles can with advantage be placed on each side of a robot to maximize the likelihood of the camera seeing three of them. Each circle's size and placement on the robot must be accessible for the program (See "Setup Software).
 
 
 
@@ -95,8 +95,8 @@ The extra converters for the HDMI Camera is required because a computer's HDMI-p
 The following steps is required to get this project running:
 1. Install Python
 2. Install Dependencies
-3. Find Camera Information
-4. Setup CameraInformation and RobotTracking Objects
+3. Setup CameraInformation
+4. Setup RobotTracking
 5. Use the find_robot function
 
 The help have been extended with the following descriptions:
@@ -150,7 +150,7 @@ internal_properties = { 'view_degrees_vertical': None,
 
 Only 'view_degrees_vertical' or 'view_degrees_horizontal' is required to set. 'focus' will auto-calibrate if not set. 'Radial_distortion' si used if there is a large radial distortion for the camera.
 
-**Note: ** The list of internal properties may be changed later on. The viewing degrees, focus, and radial_distortion are fixed.
+**Notice:** The list of internal properties may be changed later on. The viewing degrees, focus, and radial_distortion are fixed.
 
 
 ### Setup RobotTracking
@@ -345,7 +345,7 @@ There is a high possibility that you do not want to have the circle or robot inf
 
 The Two resource files can, therefore, be changed at will. The only necessary thing is that the personalized resources complies with their interfaces.
 
-**Note: ** These interfaces may be extended in the future as the project gets closer to a version 1.
+**Notice:** These interfaces may be extended in the future as the project gets closer to a version 1.
 
 ### RobotResources Interface
 The RobotResources interface consists of the following functions:

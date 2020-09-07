@@ -8,6 +8,9 @@
 * Setup Hardware
 * Setup Software
   * Language and dependencies
+  * Setup CameraInformation
+  * Setup RobotTracking
+  * Use the find_robot function
   * Can't find the camera's information?
   * Focus
 * Example Program
@@ -89,6 +92,16 @@ The extra converters for the HDMI Camera is required because a computer's HDMI-p
 
 
 ## Setup Software
+The following steps is required to get this project running:
+1. Install Python
+2. Install Dependencies
+3. Find Camera Information
+4. Setup CameraInformation and RobotTracking Objects
+5. Use the find_robot function
+
+The help have been extended with the following descriptions:
+* Can't find the cameras' information?
+* Focus
 
 
 ### Language and dependencies
@@ -104,6 +117,91 @@ This project uses **Python 3.6** or higher. The following libraries is used in t
 * Opencv-python
 
 *Hint: Use Pip to install the libraries + the ones with (default) does not need to be installed*
+
+
+### Setup CameraInformation
+CameraInformation is imported from the 'CameraModels.py' file:
+
+```python
+from Models.CameraModels import CameraInfo
+```
+
+Multiple cameras can be used in RobotTracking - Only a single one is required. Each camera must be initialized as CameraInformation objects. A Logitech-C210 webcam is here initialized:
+
+```python
+logitech_prob = { 'view_degrees_vertical': 26.14 }
+logitech_cam_info = CameraInfo(address = 0, internal_properties = logitech_prob)
+```
+
+The 'address' parameter is defining which address the camera is at. The first cam is at 0, the next at 1, and so on. The address is determined by the order of which the computer have identified them.
+
+There is a full list of 'internal_properties' that can be set:
+
+
+```python
+internal_properties = { 'view_degrees_vertical': None,
+                        'view_degrees_horizontal': None,
+                        'dpi': None,
+                        'focal_length': None,  
+                        'focus': None,
+                        'radial_distortion': None
+                         }
+```
+
+Only 'view_degrees_vertical' or 'view_degrees_horizontal' is required to set. 'focus' will auto-calibrate if not set. 'Radial_distortion' si used if there is a large radial distortion for the camera.
+
+**Note: ** The list of internal properties may be changed later on. The viewing degrees, focus, and radial_distortion are fixed.
+
+
+### Setup RobotTracking
+RobotTracking is imported from the 'Robot.py' file:
+
+```python
+from Robot import RobotTracking
+```
+
+Together with two more classes that provides the robot and circle information for the tracking to work:
+
+```python
+from Resources import RobotResources, CircleResources
+```
+
+An instance of each Resource file needs to be created:
+
+```python
+circle_info = CircleResources()
+robot_info = RobotResources()
+```
+
+The RobotTracking can not be initialized with a list of the cameras and the two resource objects:
+
+```python
+tracking = RobotTracking([logitech_cam_info], circle_info, robot_info)
+```
+
+After the RobotTracking initialization will the cameras be calibrated and ready to detect the robots.
+It is also possible to get visual feedback from the cameras to see if everything is working properly. Visual feedback can be done by setting a parameters in the initialization:
+
+```python
+tracking = RobotTracking([logitech_cam_info], circle_info, robot_info, visual_feedback = True)
+```
+
+
+### Use the find_robot function
+Everything has now been set up and the robots can be found. This is simply done by calling the function:
+
+```python
+position = tracking.find_robot()
+```
+
+The function will return a list of each robot's position. The returned list from an example with a single robot can be seen here:
+
+```python
+position = [ { 'model': '1', 'position': { 'x': 100, 'y': 55, 'z': 0, 'r': 0.8 } } ]
+```
+
+
+
 
 
 ### Can't find the camera's information?
@@ -200,20 +298,6 @@ logitech_cam_info = CameraInfo(address = 0, internal_properties = logitech_prob)
 ```
 
 In this case has the properties for a Logitech camera been defined. The camera can be found at index zero because it is the first camera that the computer have detected at startup.
-
-The full set of available 'internal_properties' is:
-
-```python
-internal_properties = { 'view_degrees_vertical': None,
-                        'view_degrees_horizontal': None,
-                        'dpi': None,
-                        'focal_length': None,  
-                        'focus': None,
-                        'radial_distortion': None
-                         }
-```
-
-Only 'view_degrees_vertical' or 'view_degrees_horizontal' is required to set. 'focus' will auto-calibrate if not set.
 
 
 **Setting up the robot tracking**

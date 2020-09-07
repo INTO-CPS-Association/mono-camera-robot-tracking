@@ -89,7 +89,7 @@ This project uses **Python 3.6** or higher. The following libraries is used in t
 *Hint: Use Pip to install the libraries + the ones with (default) does not need to be installed* 
 
 
-### Can't find the cameras information?
+### Can't find the camera's information?
 Can't find the required camera information on the internet? No problem! The information can be found manually with a bit of work. A help function is avaiable in the program to make this manual setup easier.
 
 The function can be found in "*ExtraHelpTools.py*" as the class "*CameraInformationHelpTool*". There is two functions in this class that can be used to find the information nessesary for calibrating the camera:
@@ -108,11 +108,11 @@ This is how the functions is used:
 
 Example code:
 
-'''python
+```python
 view_degree_vertical = CameraInformationHelpTool.get_viewing_angle_height(201, 550)
 camera_prob = { 'view_degrees_vertical': view_degree_vertical }
 camera_info = CameraInfo(address = 0, internal_properties = camera_prob)
-'''
+```
 
 The object in the image frame:
 ![Camera setup - In frame](/Images/object_in_frame.png)
@@ -126,20 +126,20 @@ The object in the image aligning with the to top and bottom of the frame:
 The focus will automatically be calibrated if nothing else has been defined in the camera properties. This auto-focus will take a bit of time each time the program starts and does not guarantee the best focus. The focus can also be manually set if a faster upstart time or better calibration is wanted. The auto and manual way of calibrating the focus can be seen in the following two code snippets. 
 
 Auto Calibration:
-'''python
+```python
 camera_prob = { 'view_degrees_vertical': view_degree_vertical,
                 'focus': None }
 camera_info = CameraInfo(address = 0, internal_properties = camera_prob)
-'''
+```
 
 The focus will per default be set to 'None', this example is to show that the Auto calibration is done when the focus parameter has not been set.
 
 Manual Calibration:
-'''python
+```python
 camera_prob = { 'view_degrees_vertical': view_degree_vertical,
                 'focus': 150 }
 camera_info = CameraInfo(address = 0, internal_properties = camera_prob)
-'''
+```
 
 The focus have in this example been set to 150. The focus value can be every integer between *0 and 255*.
 

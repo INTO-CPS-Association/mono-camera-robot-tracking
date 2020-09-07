@@ -1,8 +1,24 @@
 # Mono Camera Robot Tracking
 
+## Table of content
+
+* Project Description
+  * Uses Circles for the tracking
+  * Images of project
+* Setup Hardware
+* Setup Software
+  * Language and dependencies
+  * Can't find the camera's information?
+  * Focus
+* Example Program
+  * Explanation of the example program
+* Personalize extensions
+
+
+
 ## Project Description
 The purpose of this project is to give a tool for robot tracking which is simple to setup and easy to bring along. Examples of use can be in demos for conferences, light weight is prefered for traveling purposes and a simple setup is wanted in a already stressing new environment.
-The technology uses just a single camera to track as many robots as wanted. The camera can be placed everywhere and does not need a fixed location, nor does it need to be placed at a known height, angle to the ground, or viewing-angle of the track. 
+The technology uses just a single camera to track as many robots as wanted. The camera can be placed everywhere and does not need a fixed location, nor does it need to be placed at a known height, angle to the ground, or viewing-angle of the track.
 It is as easy as:
 1. setup camera at random
 2. Point camera at the track
@@ -18,7 +34,7 @@ What is used is circles. These circles is split up into two categories:
 * Robot Circles
 
 The two kind of circles look the same but are seperated by the ID on them (Number of smaller circles inside).
-Examples of circles can here be seen, with the id of 3, 5, and 7 correspondingly. 
+Examples of circles can here be seen, with the id of 3, 5, and 7 correspondingly.
 ![Circle IDs](Images/circle_ids.png)
 
 *OBS!: Where the smaller circles is placed does not matter.*
@@ -61,7 +77,7 @@ Image of the circles being tracked in the image:
 The USB Camera can be connected directly to the PC and does not require extra equipment.
 
 The HDMI Camera probably needs the following part:
-* HDMI-To-HDMI or MicroHDMI-To-HDMI 
+* HDMI-To-HDMI or MicroHDMI-To-HDMI
 * HDMI-To-USB converter
 
 The extra converters for the HDMI Camera is required because a computer's HDMI-port only is an output and cannot take a HDMI-signal in from the camera. The HDMI signal needs, therefore, to be converted to an USB-signal which the PC can take as an input signal.
@@ -86,7 +102,7 @@ This project uses **Python 3.6** or higher. The following libraries is used in t
 * Numpy
 * Opencv-python
 
-*Hint: Use Pip to install the libraries + the ones with (default) does not need to be installed* 
+*Hint: Use Pip to install the libraries + the ones with (default) does not need to be installed*
 
 
 ### Can't find the camera's information?
@@ -123,7 +139,7 @@ The object in the image aligning with the to top and bottom of the frame:
 
 
 ### Focus
-The focus will automatically be calibrated if nothing else has been defined in the camera properties. This auto-focus will take a bit of time each time the program starts and does not guarantee the best focus. The focus can also be manually set if a faster upstart time or better calibration is wanted. The auto and manual way of calibrating the focus can be seen in the following two code snippets. 
+The focus will automatically be calibrated if nothing else has been defined in the camera properties. This auto-focus will take a bit of time each time the program starts and does not guarantee the best focus. The focus can also be manually set if a faster upstart time or better calibration is wanted. The auto and manual way of calibrating the focus can be seen in the following two code snippets.
 
 Auto Calibration:
 ```python
@@ -149,12 +165,87 @@ An example file is available to show how the project can be set up and used in a
 
 The example can be found in the file "Example.py". The code will be explained here to give an insight into how it works. The explaination starts from the top and moved down.
 
-**Explanation of the Example program**
+### Explanation of the Example program
+
+**Imports**
+
+Four classes is central for setting up and using the project.
+The first on is the class that handles the information for the cameras:
+
+```python
+from Models.CameraModels import CameraInfo
+```
+
+And the second one is the class for tracking the Robots:
+
+```python
+from Robot import RobotTracking
+```
+
+The two last ones is the 'RobotResources' and 'CircleResources'. These two classes does not need to be imported from this file but can be customized by the user (See: Personalize extensions). The 'RobotResources' is the class that provides information about where the circles has been placed on each robot. The 'CircleResources' is the class that provides information about the type, size, and other relevant information about the different circles that can be found in the image frame.
+
+```python
+from Resources import RobotResources, CircleResources
+```
+
+
+**Setting up the camera**
+
+The first step in setting up RobotTracking is to define the cameras with CameraInfo. In the example have a single camera been defined:
+
+```python
+logitech_prob = { 'view_degrees_vertical': 26.14 }
+logitech_cam_info = CameraInfo(address = 0, internal_properties = logitech_prob)
+```
+
+In this case has the properties for a Logitech camera been defined. The camera can be found at index zero because it is the first camera that the computer have detected at startup.
+
+The full set of available 'internal_properties' is:
+
+```python
+internal_properties = { 'view_degrees_vertical': None,
+                        'view_degrees_horizontal': None,
+                        'dpi': None,
+                        'focal_length': None,  
+                        'focus': None,
+                        'radial_distortion': None
+                         }
+```
+
+Only 'view_degrees_vertical' or 'view_degrees_horizontal' is required to set. 'focus' will auto-calibrate if not set.
+
+
+**Setting up the robot tracking**
+Three pieces of information is required for initializing the RobotTracking
+
+* Cameras information
+* Circle Resource Object
+* Robot Resource Object
+
+Multiple cameras can be used if the track is too large for a single camera to keep control of.
+Initializing a RobotTracking object:
+
+```python
+tracking = RobotTracking([logitech_cam_info], circle_info, robot_info, visual_feedback = True)
+```
+
+The 'visual_feedback' is per default 'False'. When set to true, the tracking will start up a window for each camera with its frame in it. Each frame will show relevant information and can be used for debugging purposes.
+
+
+**Using the robot tracking**
+The following code will keep finding the robots' position and writing them to the terminal.
+
+```python
+while True:
+    timestamp = time.time()
+    robot_list = tracking.find_robots()
+
+    if robot_list == -1: break
+
+    for robot in robot_list:
+        print(robot)
+```
 
 
 
 ## Personalize extensions
-
-
-
-

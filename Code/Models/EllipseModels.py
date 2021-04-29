@@ -61,13 +61,13 @@ class Ellipse:
 
 
 class RobotEllipse:
-    def __init__(self, super_ellipse = None, sub_ellipses = None):
+    def __init__(self, super_ellipse = None, sub_ellipses = None, distance = 0, angle = 0, id = None):
         self.super_ellipse = super_ellipse
         self.sub_ellipses = []
-        self.angle = 0
-        self.distance = 0
-        if sub_ellipses != None:
-            self.sub_ellipses = sub_ellipses
+        self.angle = angle
+        self.distance = distance
+        self.sub_ellipses = sub_ellipses
+        self.id = id
 
     def get_width(self):
         return self.super_ellipse.width()
@@ -94,13 +94,18 @@ class RobotEllipse:
         return self.super_ellipse
 
     def get_sub_ellipses(self):
+        if self.sub_ellipses == None:
+            return []
         return self.sub_ellipses
 
     def add_sub_ellipse(self, ellipse):
         self.sub_ellipses.append(ellipse)
 
     def get_id(self):
-        return len(self.sub_ellipses)
+        if self.sub_ellipses != None:
+            return len(self.sub_ellipses)
+        else:
+            return self.id
 
     def valid(self):
         return len(self.sub_ellipses) > 0
